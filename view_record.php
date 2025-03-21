@@ -11,7 +11,7 @@ if ($conn->connect_error) {
 
 $id = intval($_GET['id']);
 
-$sql = "SELECT e.name, p.salary, p.sss, p.philhealth, p.pagibig, p.taxable_income, p.withholding_tax, p.net_salary 
+$sql = "SELECT p.salary, p.overtime_pay, p.sss, p.philhealth, p.pagibig, p.taxable_income, p.withholding_tax, p.net_salary 
         FROM payroll p
         INNER JOIN employee e ON p.emp_id = e.emp_id
         WHERE p.payroll_id = ?";

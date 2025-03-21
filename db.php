@@ -13,9 +13,47 @@ try {
     $conn->exec("CREATE DATABASE IF NOT EXISTS $dbname");
     $conn->exec("USE $dbname");
     
-    $conn->query("CREATE TABLE IF NOT EXISTS employee (
+    // Create employee table
+    $conn->exec("CREATE TABLE IF NOT EXISTS employee (
         emp_id INT AUTO_INCREMENT PRIMARY KEY,
         name VARCHAR(255) NOT NULL
+    )");
+
+    // Create contact table
+    $conn->exec("CREATE TABLE IF NOT EXISTS contact (
+        contact_id INT AUTO_INCREMENT PRIMARY KEY,
+        emp_id INT,
+        phone_number VARCHAR(20),
+        email_address VARCHAR(255),
+        FOREIGN KEY (emp_id) REFERENCES employee(emp_id) ON DELETE CASCADE
+    )");
+
+    // Create address table
+    $conn->exec("CREATE TABLE IF NOT EXISTS address (
+        address_id INT AUTO_INCREMENT PRIMARY KEY,
+        emp_id INT,
+        city_municipality VARCHAR(50),
+        province VARCHAR(50),
+        FOREIGN KEY (emp_id) REFERENCES employee(emp_id) ON DELETE CASCADE
+    )");
+
+    // Create job table
+    $conn->exec("CREATE TABLE IF NOT EXISTS job (
+        job_id INT AUTO_INCREMENT PRIMARY KEY,
+        emp_id INT,
+        position VARCHAR(50),
+        department VARCHAR(50),
+        FOREIGN KEY (emp_id) REFERENCES employee(emp_id) ON DELETE CASCADE
+    )");
+
+    // Create work hours table
+    $conn->exec("CREATE TABLE IF NOT EXISTS work_hours (
+        work_id INT AUTO_INCREMENT PRIMARY KEY,
+        emp_id INT,
+        hours_worked DECIMAL(5,2),
+        hourly_rate DECIMAL(8,2),
+        overtime_hours DECIMAL(5,2),
+        FOREIGN KEY (emp_id) REFERENCES employee(emp_id) ON DELETE CASCADE
     )");
 
     // Create payroll table
@@ -23,6 +61,7 @@ try {
         payroll_id INT AUTO_INCREMENT PRIMARY KEY,
         emp_id INT NOT NULL,
         salary DECIMAL(15,2) NOT NULL,
+        overtime_pay DECIMAL (15,2) NOT NULL,
         sss DECIMAL(15,2) NOT NULL,
         philhealth DECIMAL(15,2) NOT NULL,
         pagibig DECIMAL(15,2) NOT NULL,

@@ -14,17 +14,49 @@ $data = json_decode(file_get_contents("php://input"), true);
 
 $id = intval($data['id']);
 $name = $conn->real_escape_string($data['name']);
+$phone_number = $conn->real_escape_string($data['phone_number']);
+$email_address = $conn->real_escape_string($data['email_address']);
+$city_municipality = $conn->real_escape_string($data['city_municipality']);
+$province = $conn->real_escape_string($data['province']);
+$position = $conn->real_escape_string($data['position']);
+$department = $conn->real_escape_string($data['department']);
 $hours_worked = floatval($data['hours_worked']);
 $hourly_rate = floatval($data['hourly_rate']);
+$overtime_hours = floatval($data['overtime_hours']);
 
-// Update employee name in the employee table
+// Update employee table
 $stmt = $conn->prepare("UPDATE employee SET name = ? WHERE emp_id = ?");
 $stmt->bind_param("si", $name, $id);
 $stmt->execute();
 $stmt->close();
 
+// Update contact table
+$stmt = $conn->prepare("UPDATE contact SET phone_number = ?, email_address = ? WHERE emp_id = ?");
+$stmt->bind_param("ssi", $phone_number, $email_address, $id);
+$stmt->execute();
+$stmt->close();
+
+// Update address table
+$stmt = $conn->prepare("UPDATE address SET city_municipality = ?, province = ? WHERE emp_id = ?");
+$stmt->bind_param("ssi", $city_municipality, $province, $id);
+$stmt->execute();
+$stmt->close();
+
+// Update job table
+$stmt = $conn->prepare("UPDATE job SET position = ?, department = ? WHERE emp_id = ?");
+$stmt->bind_param("ssi", $position, $department, $id);
+$stmt->execute();
+$stmt->close();
+
+// Update work hours table
+$stmt = $conn->prepare("UPDATE work_hours SET hours_worked = ?, hourly_rate = ?, overtime_hours = ? WHERE emp_id = ?");
+$stmt->bind_param("dddi", $hours_worked, $hourly_rate, $overtime_hours, $id);
+$stmt->execute();
+$stmt->close();
+
 // Calculate salary
-$salary = $hours_worked * $hourly_rate;
+$overtime_pay = $hourly_rate * 1.25 * $overtime_hours;
+$salary = $hours_worked * $hourly_rate + ($hourly_rate * 1.25 * $overtime_hours);
 
 // SSS computation
 function getSSS($conn, $salary) {
@@ -48,7 +80,7 @@ function getPhilHealth($conn, $salary) {
     $rate = 0;
     $fixed_contribution = 0;
     $min_salary = 0;
-    $max_salary = NULL; // Can be NULL for open-ended ranges
+    $max_salary = NULL;
     
     // Query to get the appropriate bracket based on salary
     $stmt = $conn->prepare("SELECT rate, fixed_contribution, min_salary, max_salary 
@@ -62,9 +94,9 @@ function getPhilHealth($conn, $salary) {
     
     // Determine PhilHealth contribution
     if ($fixed_contribution > 0) {
-        return $fixed_contribution; // Fixed amount (e.g., ₱500 or ₱5,000)
+        return $fixed_contribution;
     } else {
-        return min(($salary * $rate)/2, 5000); // Ensure it does not exceed max contribution
+        return min(($salary * $rate)/2, 5000);
     }
 }
 
@@ -113,8 +145,8 @@ $withholdingTax = $rate * ($taxableIncome - $min_income) + $base_tax;
 $net_salary = $salary - ($sss + $philHealth + $pagIbig + $withholdingTax);
 
 // Update payroll table with salary calculations
-$stmt = $conn->prepare("UPDATE payroll SET salary = ?, sss = ?, philhealth = ?, pagibig = ?, taxable_income = ?,  withholding_tax = ?, net_salary = ? WHERE payroll_id = ?");
-$stmt->bind_param("dddddddi", $salary, $sss, $philHealth, $pagIbig, $taxableIncome, $withholdingTax, $net_salary, $id);
+$stmt = $conn->prepare("UPDATE payroll SET salary = ?, overtime_pay = ?, sss = ?, philhealth = ?, pagibig = ?, taxable_income = ?,  withholding_tax = ?, net_salary = ? WHERE payroll_id = ?");
+$stmt->bind_param("ddddddddi", $salary, $overtime_pay, $sss, $philHealth, $pagIbig, $taxableIncome, $withholdingTax, $net_salary, $id);
 $stmt->execute();
 $stmt->close();
 

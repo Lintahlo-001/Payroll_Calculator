@@ -13,52 +13,56 @@ include("db.php");
     <script>
         async function processRecord() {
             let name = document.getElementById("name").value;
-            let contact = document.getElementById("contact").value;
-            let email = document.getElementById("email").value;
-            let city = document.getElementById("city/municipality").value;
+            let phone_number = document.getElementById("phone_number").value;
+            let email_address = document.getElementById("email_address").value;
+            let city_municipality = document.getElementById("city_municipality").value;
             let province = document.getElementById("province").value;
             let position = document.getElementById("position").value;
             let department = document.getElementById("department").value;
-            let hoursWorked = parseFloat(document.getElementById("hoursWorked").value);
-            let hourlyRate = parseFloat(document.getElementById("hourlyRate").value);
+            let hours_worked = document.getElementById("hours_worked").value;
+            let hourly_rate = document.getElementById("hourly_rate").value;
+            let overtime_hours = document.getElementById("overtime_hours").value;
 
-            if (!name || !contact || !email || !city || !province || !position || !department || isNaN(hoursWorked) || isNaN(hourlyRate)) {
+            if (!name || !phone_number || !email_address || !city_municipality || !province || !position || !department || isNaN(hours_worked) || isNaN(hourly_rate)) {
                 document.getElementById("result").innerHTML = `<p style="color: red;">Please fill in all fields correctly.</p>`;
                 return;
             }
 
-            let overtime = parseFloat(document.getElementById("overtime").value);
-            if (isNaN(overtime)) {
-                overtime = 0;
+            if (isNaN(overtime_hours)) {
+                overtime_hours = 0;
             }
-            
-            let salary = hoursWorked * hourlyRate + (overtime * 1.5 * (hourlyRate));
 
             try {
                 let response = await fetch("process_record.php", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ name: name, salary: salary })
+                    body: JSON.stringify({
+                            name: name,
+                            phone_number: phone_number,
+                            email_address: email_address,
+                            city_municipality: city_municipality,
+                            province: province,
+                            position: position,
+                            department: department,
+                            hours_worked: parseFloat(hours_worked),
+                            hourly_rate: parseFloat(hourly_rate),
+                            overtime_hours: parseFloat(overtime_hours)
+                        })
                 });
 
                 let result = await response.json();
-                result.pagibig = Number(result.pagibig) || 0;
-                result.sss = Number(result.sss) || 0;
-                result.philhealth = Number(result.philhealth) || 0;
-                result.taxable_income = Number(result.taxable_income) || 0;
-                result.withholding_tax = Number(result.withholding_tax) || 0;
-                result.net_salary = Number(result.net_salary) || 0;
 
                 if (response.ok) {
                     document.getElementById("result").innerHTML = ` 
                         <p><strong>Name:</strong> ${result.name}</p>
-                        <p><strong>Gross Salary:</strong> ${result.salary.toFixed(2)}</p>
-                        <p><strong>SSS Deduction:</strong> ${result.sss.toFixed(2)}</p>
-                        <p><strong>PhilHealth Deduction:</strong> ${result.philhealth.toFixed(2)}</p>
-                        <p><strong>Pag-IBIG Deduction:</strong> ${result.pagibig.toFixed(2)}</p>
-                        <p><strong>Taxable Income:</strong> ${result.taxable_income.toFixed(2)}</p>
-                        <p><strong>Withholding Tax:</strong> ${result.withholding_tax.toFixed(2)}</p>
-                        <p><strong>Net Salary:</strong> ${result.net_salary.toFixed(2)}</p>
+                        <p><strong>Gross Salary:</strong> ₱${parseFloat(result.salary).toFixed(2)}</p>
+                        <p><strong>Overtime Pay:</strong> ₱${parseFloat(result.overtime_pay).toFixed(2)}</p>
+                        <p><strong>SSS Deduction:</strong> ₱${parseFloat(result.sss).toFixed(2)}</p>
+                        <p><strong>PhilHealth Deduction:</strong> ₱${parseFloat(result.philhealth).toFixed(2)}</p>
+                        <p><strong>Pag-IBIG Deduction:</strong> ₱${parseFloat(result.pagibig).toFixed(2)}</p>
+                        <p><strong>Taxable Income:</strong> ₱${parseFloat(result.taxable_income).toFixed(2)}</p>
+                        <p><strong>Withholding Tax:</strong> ₱${parseFloat(result.withholding_tax).toFixed(2)}</p>
+                        <p><strong>Net Salary:</strong> ₱${parseFloat(result.net_salary).toFixed(2)}</p>
                     `;
                     loadRecords();
                 } else {
@@ -93,8 +97,9 @@ include("db.php");
                         alert(result.error);
                     } else {
                         resultDiv.innerHTML = `
-                            <p><strong>Name:</strong> ${result.name}</p>
+                            <p><strong>Salary Computations:</strong></p>
                             <p><strong>Gross Salary:</strong> ₱${parseFloat(result.salary).toFixed(2)}</p>
+                            <p><strong>Overtime Pay:</strong> ₱${parseFloat(result.overtime_pay).toFixed(2)}</p>
                             <p><strong>SSS Deduction:</strong> ₱${parseFloat(result.sss).toFixed(2)}</p>
                             <p><strong>PhilHealth Deduction:</strong> ₱${parseFloat(result.philhealth).toFixed(2)}</p>
                             <p><strong>Pag-IBIG Deduction:</strong> ₱${parseFloat(result.pagibig).toFixed(2)}</p>
@@ -139,36 +144,36 @@ include("db.php");
         <h2>Payroll System</h2>
         <form class="form-container">
             <label for="name">Employee Name:</label>
-            <input type="text" id="name" placeholder="Enter name">
+            <input type="text" id="name" placeholder="Enter name" maxlength="60">
 
-            <label for="contact">Contact Number:</label>
-            <input type="text" id="contact" placeholder="Enter Contact Number">
+            <label for="phone_number">Contact Number:</label>
+            <input type="text" id="phone_number" placeholder="Enter Phone Number" maxlength="20">
 
-            <label for="email">Email Address:</label>
-            <input type="text" id="email" placeholder="Enter Email Address">
+            <label for="email_address">Email Address:</label>
+            <input type="text" id="email_address" placeholder="Enter Email Address" maxlength="50">
 
-            <label for="city/municipality">City/Municipality:</label>
-            <input type="text" id="city/municipality" placeholder="Enter City/Municipality">
+            <label for="city_municipality">City/Municipality:</label>
+            <input type="text" id="city_municipality" placeholder="Enter City/Municipality" maxlength="20">
 
             <label for="province">Province:</label>
-            <input type="text" id="province" placeholder="Enter Province">
+            <input type="text" id="province" placeholder="Enter Province" maxlength="20">
 
             <label for="position">Position:</label>
-            <input type="text" id="position" placeholder="Enter Position">
+            <input type="text" id="position" placeholder="Enter Position" maxlength="20">
 
             <label for="department">Department:</label>
-            <input type="text" id="department" placeholder="Enter Department">
+            <input type="text" id="department" placeholder="Enter Department" maxlength="20">
 
-            <label for="hoursWorked">Hours Worked:</label>
-            <input type="number" id="hoursWorked" placeholder="Enter Hours Worked">
+            <label for="hours_worked">Hours Worked:</label>
+            <input type="number" id="hours_worked" placeholder="Enter Hours Worked" onKeyPress="if(this.value.length==3) return false;">
 
-            <label for="hourlyRate">Hourly Rate:</label>
-            <input type="number" id="hourlyRate" placeholder="Enter Hourly Rate">
+            <label for="hourly_rate">Hourly Rate:</label>
+            <input type="number" id="hourly_rate" placeholder="Enter Hourly Rate" onKeyPress="if(this.value.length==6) return false;">
 
-            <label for="overtime">Overtime:</label>
-            <input type="number" id="overtime" placeholder="Enter Overtime(optional)">
+            <label for="overtime_hours">Overtime:</label>
+            <input type="number" id="overtime_hours" placeholder="Enter Overtime(optional)" onKeyPress="if(this.value.length==3) return false;">
 
-            <button type="button" onclick="processRecord()">Submit</button>
+            <button type="button" class="submit" onclick="processRecord()">Submit</button>
         </form>
 
         <div id="result"></div>

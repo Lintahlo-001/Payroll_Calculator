@@ -27,9 +27,3 @@ git clone https://github.com/Yuro0444/Payroll_Calculator.git
 # Notes/To do
 
 -Add more frontend design
-
--Use postman to test api requests
-
-(IMAN Specific)
-
--Add more tables

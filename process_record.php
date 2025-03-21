@@ -1,11 +1,9 @@
 <?php
-// Set response headers to allow API calls from frontend
 header("Content-Type: application/json");
-header("Access-Control-Allow-Origin: *"); // Allow all origins (for testing)
+header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Methods: POST");
 header("Access-Control-Allow-Headers: Content-Type");
 
-// Database connection
 $host = "localhost";
 $username = "root";
 $password = "";
@@ -21,14 +19,18 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     // Get JSON input
     $data = json_decode(file_get_contents("php://input"), true);
     
-    // Validate input
-    if (!isset($data["salary"], $data["name"])) {
-        echo json_encode(["error" => "Invalid request"]);
-        exit;
-    }
-
-    $salary = floatval($data["salary"]);
-    $name = $conn->real_escape_string($data["name"]);
+    $name = $conn->real_escape_string($data['name']);
+    $phone_number = $conn->real_escape_string($data['phone_number']);
+    $email_address = $conn->real_escape_string($data['email_address']);
+    $city_municipality = $conn->real_escape_string($data['city_municipality']);
+    $province = $conn->real_escape_string($data['province']);
+    $position = $conn->real_escape_string($data['position']);
+    $department = $conn->real_escape_string($data['department']);
+    $hours_worked = floatval($data['hours_worked']);
+    $hourly_rate = floatval($data['hourly_rate']);
+    $overtime_hours = floatval($data['overtime_hours']);
+    $overtime_pay = $hourly_rate * 1.25 * $overtime_hours;
+    $salary = $hours_worked * $hourly_rate + ($hourly_rate * 1.25 * $overtime_hours);
 
     // SSS computation
     function getSSS($conn, $salary) {
@@ -52,7 +54,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $rate = 0;
         $fixed_contribution = 0;
         $min_salary = 0;
-        $max_salary = NULL; // Can be NULL for open-ended ranges
+        $max_salary = NULL;
         
         // Query to get the appropriate bracket based on salary
         $stmt = $conn->prepare("SELECT rate, fixed_contribution, min_salary, max_salary 
@@ -66,9 +68,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         
         // Determine PhilHealth contribution
         if ($fixed_contribution > 0) {
-            return $fixed_contribution; // Fixed amount (e.g., ₱500 or ₱5,000)
+            return $fixed_contribution;
         } else {
-            return min(($salary * $rate)/2, 5000); // Ensure it does not exceed max contribution
+            return min(($salary * $rate)/2, 5000);
         }
     }
 
@@ -122,9 +124,29 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $stmt->execute();
     $emp_id = $stmt->insert_id;
     $stmt->close();
+    
+    $stmt = $conn->prepare("INSERT INTO contact (emp_id, phone_number, email_address) VALUES (?, ?, ?)");
+    $stmt->bind_param("iss", $emp_id, $phone_number, $email_address);
+    $stmt->execute();
+    $stmt->close();
 
-    $stmt = $conn->prepare("INSERT INTO payroll (emp_id, salary, sss, philhealth, pagibig, taxable_income, withholding_tax, net_salary) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
-    $stmt->bind_param("iddddddd", $emp_id, $salary, $sss, $philHealth, $pagIbig, $taxableIncome, $withholdingTax, $net_salary);
+    $stmt = $conn->prepare("INSERT INTO address (emp_id, city_municipality, province) VALUES (?, ?, ?)");
+    $stmt->bind_param("iss", $emp_id, $city_municipality, $province);
+    $stmt->execute();
+    $stmt->close();
+
+    $stmt = $conn->prepare("INSERT INTO job (emp_id, position, department) VALUES (?, ?, ?)");
+    $stmt->bind_param("iss", $emp_id, $position, $department);
+    $stmt->execute();
+    $stmt->close();
+
+    $stmt = $conn->prepare("INSERT INTO work_hours (emp_id, hours_worked, hourly_rate, overtime_hours) VALUES (?, ?, ?, ?)");
+    $stmt->bind_param("iddd", $emp_id, $hours_worked, $hourly_rate, $overtime_hours);
+    $stmt->execute();
+    $stmt->close();
+
+    $stmt = $conn->prepare("INSERT INTO payroll (emp_id, salary, overtime_pay, sss, philhealth, pagibig, taxable_income, withholding_tax, net_salary) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+    $stmt->bind_param("idddddddd", $emp_id, $salary, $overtime_pay, $sss, $philHealth, $pagIbig, $taxableIncome, $withholdingTax, $net_salary);
     $stmt->execute();
     $stmt->close();
 
@@ -132,6 +154,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     echo json_encode([
         "name" => $name,
         "salary" => $salary,
+        "overtime_pay"=> $overtime_pay,
         "sss" => $sss,
         "philhealth" => $philHealth,
         "pagibig" => $pagIbig,

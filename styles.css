@@ -12,14 +12,14 @@ body {
     overflow: hidden;
 }
 
-/* Container Styling */
+/* Expand the main container width */
 .container {
     background: #fff;
     padding: 20px;
     border-radius: 8px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    width: 100%;
-    max-width: 900px;
+    width: 90%;
+    max-width: 1500px;
     overflow-y: auto;
     height: 100%;
     box-sizing: border-box;
@@ -57,21 +57,7 @@ input {
     background-color: #f9f9f9;
 }
 
-button {
-    grid-column: span 2;
-    padding: 10px;
-    background-color: #007bff;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    font-size: 16px;
-    cursor: pointer;
-    margin-top: 10px;
-}
 
-button:hover {
-    background-color: #0056b3;
-}
 
 /* Result Section */
 #result {
@@ -85,7 +71,7 @@ button:hover {
 /* Table Container */
 .table-container {
     margin-top: 20px;
-    max-height: 400px;
+    max-height: 500px; /* Increased height for larger content */
     overflow-y: auto;
     border-radius: 5px;
     border: 1px solid #ddd;
@@ -113,6 +99,42 @@ td {
     background-color: #fff;
 }
 
+/* Details Row Styling */
+.details-row {
+    background-color: #f9f9f9;
+    display: none;
+    border-left: 3px solid #6c757d;
+    transition: all 0.3s ease-in-out;
+}
+
+.details-row td {
+    padding: 15px;
+}
+
+.details-row div {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 20px;
+    padding: 15px;
+    background: #ffffff;
+    border-radius: 6px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+}
+
+.details-row p {
+    flex: 1 1 250px;
+    margin: 5px 0;
+    font-size: 14px;
+    color: #333;
+    white-space: nowrap;
+}
+
+.details-row p strong {
+    color: #6c757d;
+}
+
+/* Buttons */
 button.view-btn {
     border: none;
     padding: 6px 12px;
@@ -144,4 +166,39 @@ a.edit-btn {
 
 a.edit-btn:hover {
     background-color: #2980b9;
+}
+
+/* Button Styling */
+button {
+    grid-column: span 2;
+    padding: 10px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    font-size: 16px;
+    cursor: pointer;
+    margin-top: 10px;
+}
+
+button.submit {
+    width: 30%;
+    margin: 10px auto 0;
+    display: block;
+}
+
+button:hover {
+    background-color: #0056b3;
+}
+
+/* Improve button spacing */
+td button, td a {
+    display: inline-block;
+    margin: 5px 5px; /* Add spacing between buttons */
+    padding: 8px 12px; /* Improve button size */
+}
+
+/* Ensure button alignment */
+td {
+    white-space: nowrap; /* Prevent buttons from stacking awkwardly */
 }
